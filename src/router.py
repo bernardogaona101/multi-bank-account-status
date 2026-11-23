@@ -42,7 +42,7 @@ def detect_bank_and_extract(pdf_path, pdf_password):
     # check if is 'plata card'
     text_pag_1 = pages_text[1].lower()
     try:
-        if "plata Card" in text_pag_1 or "plata" in text_pag_1:
+        if "plata card" in text_pag_1 or "plata" in text_pag_1:
             bank = "PLATA"
                 #return bank
     except Exception:
