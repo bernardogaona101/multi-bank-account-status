@@ -20,8 +20,10 @@ def save_csv(df, clabe, fecha_corte):
         # encoding='utf-8-sig' asegura que los acentos se lean bien en Excel
         df.to_csv(ruta_completa, index=False, encoding='utf-8-sig')
         print(f"¡Éxito! Datos guardados en: {ruta_completa}")
+        return True
     except Exception as e:
         print(f"Error al guardar el CSV: {e}")
+        return False
 
 def save_to_google_sheets(df, nombre_documento="Master"):
     """
@@ -89,8 +91,11 @@ def load_data(df, clabe, fecha_corte, google_sheet="Master", save_local=True, sa
     """
     Función orquestadora de carga: Guarda localmente Y en la nube.
     """
+    local_ok = True
+    cloud_ok = True
+
     if save_local:
-        save_csv(df, clabe, fecha_corte)
+        local_ok = save_csv(df, clabe, fecha_corte)
     else:
         print("No saved to local")
 
@@ -100,6 +105,8 @@ def load_data(df, clabe, fecha_corte, google_sheet="Master", save_local=True, sa
         df_cloud['Fecha_Cargo'] = df_cloud['Fecha_Cargo'].astype(str)
         df_cloud['Fecha_Corte'] = df_cloud['Fecha_Corte'].astype(str)
         df_cloud = df_cloud.fillna("")
-        save_to_google_sheets(df_cloud, google_sheet)
+        cloud_ok = save_to_google_sheets(df_cloud, google_sheet)
     else:
         print("No saved to cloud")
+
+    return local_ok and cloud_ok

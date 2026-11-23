@@ -31,6 +31,8 @@ if "datos_procesados" not in st.session_state:
     st.session_state["datos_procesados"] = None
 if "subida_exitosa" not in st.session_state:
     st.session_state["subida_exitosa"] = False
+if "subida_exitosa" not in st.session_state:
+    st.session_state["subida_exitosa"] = False
 
 # INTERFAZ DE USUARIO
 # Subida de archivo
@@ -79,6 +81,7 @@ if st.button("Procesar Estado de Cuenta", type="primary"):
                     "clabe": clabe,
                     "fecha": fecha
                 }
+                st.session_state["subida_exitosa"] = False
             
                 # --- FASE 3: LOAD ---
                 propietario_actual = obtener_propietario(clabe)
@@ -99,6 +102,8 @@ if st.button("Procesar Estado de Cuenta", type="primary"):
                     if guardado_correcto:
                         st.toast("🚀 ¡Datos guardados exitosamente!", icon="🎉")
                         st.success("✅ ¡Proceso completado exitosamente!")
+                        if save_cloud:
+                            st.session_state["subida_exitosa"] = True
                 else:
                     st.info("ℹ️ Datos extraídos correctamente. Puedes revisarlos en la tabla de abajo antes de decidir guardarlos.")
             else:
@@ -147,22 +152,24 @@ if st.session_state["datos_procesados"] is not None:
         if propietario_actual == "Desconocido":
             st.error("🚨 Acceso denegado: Esta cuenta no está registrada en el sistema de seguridad.")
         else:
-            st.info(f"Conectando para subir los datos de {propietario_actual}...")
-            
-            # Validamos el resultado de la función
-            subida_exitosa = load_data(
-                df_clean, 
-                clabe, 
-                fecha, 
-                google_sheet=DEFAULT_GOOGLE_SHEET_NAME, 
-                save_local=False, 
-                save_cloud=True
-            )
-            if subida_correcta:
-                st.session_state["subida_exitosa"] = True
-                st.toast(f"¡Datos de {propietario_actual} subidos con éxito! 🎉", icon="☁️")
+            with st.spinner(f"Conectando para subir los datos de {propietario_actual}..."):
+                # Validamos el resultado de la función
+                subida_exitosa = load_data(
+                    df_clean, 
+                    clabe, 
+                    fecha, 
+                    google_sheet=DEFAULT_GOOGLE_SHEET_NAME, 
+                    save_local=False, 
+                    save_cloud=True
+                )
+                if subida_exitosa:
+                    st.session_state["subida_exitosa"] = True
+                    st.toast(f"¡Datos de {propietario_actual} subidos con éxito! 🎉", icon="☁️")
+                    st.rerun()
+                else:
+                    st.error("❌ Ocurrió un error al subir los datos a Google Sheets. Revisa la consola o las credenciales.")
 
     # Muestra el mensaje de éxito persistente fuera del botón si la subida fue exitosa
-    if st.session_state["subida_exitosa"]:
+    if st.session_state.get("subida_exitosa", False):
         propietario_actual = obtener_propietario(clabe)
         st.success(f"¡Datos de {propietario_actual} subidos exitosamente a la nube! 🎉")
