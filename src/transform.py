@@ -113,6 +113,8 @@ def clean_and_categorize(bank, df_total, fecha_corte,clabe):
     df_total.loc[is_total_charge, 'Tipo_Movimiento'] = 'Compra Total MSI'
 
     df_total['Fecha_Corte'] = fecha_corte
+    df_total['Year'] = df_total['Fecha_Operacion'].dt.year
+    df_total['Month'] = df_total['Fecha_Operacion'].dt.month
     
     df_total['bank'] = bank
 
